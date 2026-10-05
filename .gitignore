@@ -1,0 +1,53 @@
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+dist/
+.cache/
+*.local
+.env.local
+.env.*.local
+
+# .NET / C#
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.db
+*.db-shm
+*.db-wal
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json
+!appsettings.Example.json
+
+# Logs
+logs/
+*.log
+
+# Secrets
+*.pfx
+*.p12
+secrets.json
+
+# Build artifacts
+publish/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Changesets
+# (keep .changeset/ directory tracked)
+
+# Test results
+TestResults/
+coverage/

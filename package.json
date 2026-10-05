@@ -1,0 +1,16 @@
+{
+  "name": "buglens",
+  "version": "1.0.0",
+  "description": "> **Automated Bug Investigation & Root-Cause Analysis Platform**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3"
+  }
+}
