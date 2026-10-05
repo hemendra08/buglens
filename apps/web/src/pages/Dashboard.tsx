@@ -13,8 +13,9 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { bugsApi } from '../api/bugs';
-import type { CreateBugRequest } from '../api/bugs';
-import type { BugResponse } from '../api/bugs';
+import { projectsApi } from '../api/projects';
+import type { CreateBugRequest, BugResponse } from '../api/bugs';
+import BugDetailsDrawer from '../components/BugDetailsDrawer';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -85,7 +86,7 @@ function StatsGrid({ bugs }: { bugs: BugResponse[] }) {
 }
 
 /* ─── Report Bug Modal ─── */
-function ReportBugModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+function ReportBugModal({ open, onClose, projectId }: { open: boolean; onClose: () => void; projectId: string | null }) {
   const [form] = Form.useForm();
   const qc = useQueryClient();
 
@@ -103,10 +104,15 @@ function ReportBugModal({ open, onClose }: { open: boolean; onClose: () => void 
   });
 
   const onFinish = (values: Record<string, string>) => {
+    if (!projectId) {
+      message.error("Please select or create a project first.");
+      return;
+    }
     mutate({
       title: values.title,
       description: values.description,
       priority: values.priority,
+      projectId: projectId,
       assignedToId: null,
     });
   };
@@ -158,13 +164,60 @@ function ReportBugModal({ open, onClose }: { open: boolean; onClose: () => void 
   );
 }
 
+/* ─── Create Project Modal ─── */
+function CreateProjectModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [form] = Form.useForm();
+  const qc = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: (data: { name: string; description: string }) => projectsApi.create(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['projects'] });
+      message.success('Project created successfully!');
+      form.resetFields();
+      onClose();
+    },
+    onError: () => message.error('Failed to create project.'),
+  });
+
+  return (
+    <Modal open={open} onCancel={onClose} footer={null} title="Create Project" styles={{ content: { background: '#18181f' }, header: { background: '#18181f' } }}>
+      <Form form={form} onFinish={mutate} layout="vertical">
+        <Form.Item label="Project Name" name="name" rules={[{ required: true }]}>
+          <Input />
+        </Form.Item>
+        <Form.Item label="Description" name="description">
+          <TextArea rows={3} />
+        </Form.Item>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="primary" htmlType="submit" loading={isPending}>Create</Button>
+        </div>
+      </Form>
+    </Modal>
+  );
+}
+
 /* ─── Main Dashboard ─── */
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
   const [modalOpen, setModalOpen] = useState(false);
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
+  const [selectedBugId, setSelectedBugId] = useState<string | null>(null);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: projectsApi.getAll,
+  });
+
+  // Auto-select first project
+  if (projects.length > 0 && !activeProjectId) {
+    setActiveProjectId(projects[0].id);
+  }
 
   const { data: bugs = [], isLoading, refetch } = useQuery({
     queryKey: ['bugs'],
@@ -173,10 +226,11 @@ export default function Dashboard() {
   });
 
   const filtered = bugs.filter((b) => {
+    const matchProject = !activeProjectId || b.projectId === activeProjectId;
     const matchSearch = !search || b.title.toLowerCase().includes(search.toLowerCase()) || b.description.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusFilter || b.status === statusFilter;
     const matchPriority = !priorityFilter || b.priority === priorityFilter;
-    return matchSearch && matchStatus && matchPriority;
+    return matchProject && matchSearch && matchStatus && matchPriority;
   });
 
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase() ?? '?';
@@ -294,7 +348,17 @@ export default function Dashboard() {
       {/* ─── Main ─── */}
       <div className="main-area">
         <header className="topbar">
-          <span className="topbar-title">Bug Dashboard</span>
+          <Space>
+            <span className="topbar-title">Project: </span>
+            <Select
+              style={{ width: 200 }}
+              value={activeProjectId}
+              onChange={setActiveProjectId}
+              placeholder="Select a project"
+              options={projects.map(p => ({ value: p.id, label: p.name }))}
+            />
+            <Button size="small" type="dashed" icon={<PlusOutlined />} onClick={() => setProjectModalOpen(true)}>New</Button>
+          </Space>
           <div className="topbar-right">
             <Tooltip title="Refresh">
               <Button icon={<ReloadOutlined />} onClick={() => refetch()} />
@@ -349,6 +413,9 @@ export default function Dashboard() {
               dataSource={filtered}
               rowKey="id"
               loading={isLoading}
+              onRow={(record) => ({
+                onClick: () => setSelectedBugId(record.id),
+              })}
               locale={{ emptyText: <Empty description="No bugs found. Great job! 🎉" /> }}
               pagination={{ pageSize: 10, showSizeChanger: false, showTotal: (t) => `${t} issue${t === 1 ? '' : 's'}` }}
             />
@@ -356,7 +423,14 @@ export default function Dashboard() {
         </main>
       </div>
 
-      <ReportBugModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <CreateProjectModal open={projectModalOpen} onClose={() => setProjectModalOpen(false)} />
+      <ReportBugModal open={modalOpen} onClose={() => setModalOpen(false)} projectId={activeProjectId} />
+      
+      <BugDetailsDrawer 
+        bugId={selectedBugId} 
+        open={!!selectedBugId} 
+        onClose={() => setSelectedBugId(null)} 
+      />
     </div>
   );
 }

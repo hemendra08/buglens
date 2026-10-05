@@ -3,6 +3,7 @@ using System;
 using BugLens.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BugLens.Api.Migrations
 {
     [DbContext(typeof(BugLensDbContext))]
-    partial class BugLensDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261005112226_AddProjectsTable")]
+    partial class AddProjectsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,10 +33,6 @@ namespace BugLens.Api.Migrations
 
                     b.Property<Guid?>("AssignedToId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("CorrelationId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -101,77 +100,6 @@ namespace BugLens.Api.Migrations
                     b.HasIndex("BugId");
 
                     b.ToTable("Comments");
-                });
-
-            modelBuilder.Entity("BugLens.Api.Models.Evidence", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BugId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("UploadedById")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BugId");
-
-                    b.HasIndex("UploadedById");
-
-                    b.ToTable("Evidences");
-                });
-
-            modelBuilder.Entity("BugLens.Api.Models.InvestigationNote", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BugId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRootCause")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("BugId");
-
-                    b.ToTable("InvestigationNotes");
                 });
 
             modelBuilder.Entity("BugLens.Api.Models.Project", b =>
@@ -283,44 +211,6 @@ namespace BugLens.Api.Migrations
                     b.Navigation("Bug");
                 });
 
-            modelBuilder.Entity("BugLens.Api.Models.Evidence", b =>
-                {
-                    b.HasOne("BugLens.Api.Models.Bug", "Bug")
-                        .WithMany("Evidences")
-                        .HasForeignKey("BugId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BugLens.Api.Models.User", "UploadedBy")
-                        .WithMany()
-                        .HasForeignKey("UploadedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Bug");
-
-                    b.Navigation("UploadedBy");
-                });
-
-            modelBuilder.Entity("BugLens.Api.Models.InvestigationNote", b =>
-                {
-                    b.HasOne("BugLens.Api.Models.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BugLens.Api.Models.Bug", "Bug")
-                        .WithMany("InvestigationNotes")
-                        .HasForeignKey("BugId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-
-                    b.Navigation("Bug");
-                });
-
             modelBuilder.Entity("BugLens.Api.Models.Project", b =>
                 {
                     b.HasOne("BugLens.Api.Models.User", "Owner")
@@ -335,10 +225,6 @@ namespace BugLens.Api.Migrations
             modelBuilder.Entity("BugLens.Api.Models.Bug", b =>
                 {
                     b.Navigation("Comments");
-
-                    b.Navigation("Evidences");
-
-                    b.Navigation("InvestigationNotes");
                 });
 
             modelBuilder.Entity("BugLens.Api.Models.Project", b =>

@@ -19,6 +19,9 @@ namespace BugLens.Api.Models
 
         public BugPriority Priority { get; set; } = BugPriority.Medium;
 
+        [MaxLength(100)]
+        public string? CorrelationId { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
@@ -34,5 +37,13 @@ namespace BugLens.Api.Models
 
         [ForeignKey(nameof(AssignedToId))]
         public User? AssignedTo { get; set; }
+
+        public Guid ProjectId { get; set; }
+        [ForeignKey(nameof(ProjectId))]
+        public Project? Project { get; set; }
+
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public ICollection<Evidence> Evidences { get; set; } = new List<Evidence>();
+        public ICollection<InvestigationNote> InvestigationNotes { get; set; } = new List<InvestigationNote>();
     }
 }

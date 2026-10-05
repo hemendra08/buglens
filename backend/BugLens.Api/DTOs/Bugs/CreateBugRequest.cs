@@ -14,5 +14,11 @@ namespace BugLens.Api.DTOs.Bugs
 
         public BugPriority Priority { get; set; } = BugPriority.Medium;
         public Guid? AssignedToId { get; set; }
+
+        [Required]
+        public Guid ProjectId { get; set; }
+
+        [MaxLength(100)]
+        public string? CorrelationId { get; set; }
     }
 }

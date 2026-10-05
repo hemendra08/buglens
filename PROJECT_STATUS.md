@@ -71,15 +71,15 @@
 
 | Step | Description | Status |
 |------|-------------|--------|
-| 4.1 | Investigation workspace layout | `[ ]` |
-| 4.2 | Evidence (screenshots, notes, attachments) | `[ ]` |
-| 4.3 | API request/response capture | `[ ]` |
-| 4.4 | Error & stack trace recording | `[ ]` |
-| 4.5 | Log association | `[ ]` |
-| 4.6 | Investigation notes | `[ ]` |
-| 4.7 | Root cause analysis | `[ ]` |
-| 4.8 | Fix tracking | `[ ]` |
-| 4.9 | Verification | `[ ]` |
+| 4.1 | Investigation workspace layout | `[x]` |
+| 4.2 | Evidence (screenshots, notes, attachments) | `[x]` |
+| 4.3 | API request/response capture | `[x]` |
+| 4.4 | Error & stack trace recording | `[x]` |
+| 4.5 | Log association | `[x]` |
+| 4.6 | Investigation notes | `[x]` |
+| 4.7 | Root cause analysis | `[x]` |
+| 4.8 | Fix tracking | `[x]` |
+| 4.9 | Verification | `[x]` |
 
 ---
 
@@ -89,9 +89,9 @@
 |------|-------------|--------|
 | 5.1 | API explorer | `[ ]` |
 | 5.2 | Dependency graph (React Flow) | `[ ]` |
-| 5.3 | Correlation ID support | `[ ]` |
+| 5.3 | Correlation ID support | `[x]` |
 | 5.4 | Error correlation | `[ ]` |
-| 5.5 | Investigation timeline | `[ ]` |
+| 5.5 | Investigation timeline | `[x]` |
 
 ---
 

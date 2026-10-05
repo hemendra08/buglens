@@ -11,6 +11,10 @@ namespace BugLens.Api.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Bug> Bugs { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<Project> Projects { get; set; }
+        public DbSet<Evidence> Evidences { get; set; }
+        public DbSet<InvestigationNote> InvestigationNotes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,6 +49,62 @@ namespace BugLens.Api.Data
                       .WithMany()
                       .HasForeignKey(e => e.AssignedToId)
                       .OnDelete(DeleteBehavior.SetNull); // Allow assigning bug to NULL if user is deleted
+            });
+
+            modelBuilder.Entity<Comment>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Bug)
+                      .WithMany(b => b.Comments)
+                      .HasForeignKey(e => e.BugId)
+                      .OnDelete(DeleteBehavior.Cascade); // Delete comments when bug is deleted
+
+                entity.HasOne(e => e.Author)
+                      .WithMany()
+                      .HasForeignKey(e => e.AuthorId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Project>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Owner)
+                      .WithMany()
+                      .HasForeignKey(e => e.OwnerId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasMany(e => e.Bugs)
+                      .WithOne(b => b.Project)
+                      .HasForeignKey(b => b.ProjectId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Evidence>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e => e.Bug)
+                      .WithMany(b => b.Evidences)
+                      .HasForeignKey(e => e.BugId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.UploadedBy)
+                      .WithMany()
+                      .HasForeignKey(e => e.UploadedById)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<InvestigationNote>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e => e.Bug)
+                      .WithMany(b => b.InvestigationNotes)
+                      .HasForeignKey(e => e.BugId)
+                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Author)
+                      .WithMany()
+                      .HasForeignKey(e => e.AuthorId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

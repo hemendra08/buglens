@@ -17,5 +17,12 @@ namespace BugLens.Api.DTOs.Bugs
 
         public Guid? AssignedToId { get; set; }
         public string? AssignedToName { get; set; }
+
+        public Guid ProjectId { get; set; }
+        public string? CorrelationId { get; set; }
+        
+        public List<BugLens.Api.DTOs.Comments.CommentResponse> Comments { get; set; } = new();
+        public List<BugLens.Api.DTOs.Investigation.EvidenceResponse> Evidences { get; set; } = new();
+        public List<BugLens.Api.DTOs.Investigation.InvestigationNoteResponse> InvestigationNotes { get; set; } = new();
     }
 }

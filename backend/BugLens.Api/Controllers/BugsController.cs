@@ -62,10 +62,36 @@ namespace BugLens.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBug(Guid id)
         {
-            // Optional: Check if user is Admin or the creator of the bug
             var success = await _bugService.DeleteBugAsync(id);
             if (!success) return NotFound();
             return NoContent();
+        }
+
+        [HttpPost("{id}/comments")]
+        public async Task<ActionResult<BugLens.Api.DTOs.Comments.CommentResponse>> AddComment(Guid id, [FromBody] BugLens.Api.DTOs.Comments.AddCommentRequest request)
+        {
+            var userId = GetCurrentUserId();
+            var comment = await _bugService.AddCommentAsync(id, request, userId);
+            if (comment == null) return NotFound();
+            return Ok(comment);
+        }
+
+        [HttpPost("{id}/evidence")]
+        public async Task<ActionResult<BugLens.Api.DTOs.Investigation.EvidenceResponse>> AddEvidence(Guid id, [FromBody] BugLens.Api.DTOs.Investigation.AddEvidenceRequest request)
+        {
+            var userId = GetCurrentUserId();
+            var evidence = await _bugService.AddEvidenceAsync(id, request, userId);
+            if (evidence == null) return NotFound();
+            return Ok(evidence);
+        }
+
+        [HttpPost("{id}/notes")]
+        public async Task<ActionResult<BugLens.Api.DTOs.Investigation.InvestigationNoteResponse>> AddInvestigationNote(Guid id, [FromBody] BugLens.Api.DTOs.Investigation.AddInvestigationNoteRequest request)
+        {
+            var userId = GetCurrentUserId();
+            var note = await _bugService.AddInvestigationNoteAsync(id, request, userId);
+            if (note == null) return NotFound();
+            return Ok(note);
         }
     }
 }
