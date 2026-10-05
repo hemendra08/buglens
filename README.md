@@ -39,7 +39,7 @@ Bug Report → Reproduce → Collect Evidence → Investigate
 | Forms | React Hook Form + Zod |
 | Visualization | React Flow, Recharts |
 | Backend | ASP.NET Core, C#, .NET |
-| Database | SQL Server + EF Core |
+| Database | PostgreSQL + EF Core |
 | Auth | JWT |
 | Validation | FluentValidation |
 | Testing | xUnit, Vitest, React Testing Library |
@@ -80,7 +80,7 @@ buglens/
 
 - Node.js 20+
 - .NET 8 SDK
-- SQL Server (or SQL Server Express / Docker)
+- PostgreSQL (or Docker)
 - Git
 
 ### Installation

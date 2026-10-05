@@ -32,7 +32,7 @@
 | 1.2 | Create monorepo structure | `[x]` |
 | 1.3 | Create React frontend (Vite + TypeScript) | `[x]` |
 | 1.4 | Create ASP.NET Core backend | `[x]` |
-| 1.5 | Configure SQL Server + EF Core | `[x]` |
+| 1.5 | Configure PostgreSQL + EF Core | `[x]` |
 | 1.6 | Configure environment variables | `[x]` |
 | 1.7 | Configure Changesets | `[x]` |
 | 1.8 | Create initial CI pipeline | `[x]` |
