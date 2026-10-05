@@ -49,9 +49,13 @@ namespace BugLens.Api.Services
             return new AuthResponse
             {
                 Token = token,
-                Email = user.Email,
-                Name = user.Name,
-                Role = user.Role.ToString()
+                User = new AuthUserInfo
+                {
+                    Id = user.Id.ToString(),
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role = user.Role.ToString()
+                }
             };
         }
 
@@ -69,9 +73,13 @@ namespace BugLens.Api.Services
             return new AuthResponse
             {
                 Token = token,
-                Email = user.Email,
-                Name = user.Name,
-                Role = user.Role.ToString()
+                User = new AuthUserInfo
+                {
+                    Id = user.Id.ToString(),
+                    Name = user.Name,
+                    Email = user.Email,
+                    Role = user.Role.ToString()
+                }
             };
         }
 
