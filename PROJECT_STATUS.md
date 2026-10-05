@@ -43,12 +43,12 @@
 
 | Step | Description | Status |
 |------|-------------|--------|
-| 2.1 | User model + migration | `[ ]` |
-| 2.2 | Role model + migration | `[ ]` |
-| 2.3 | Registration / admin user seed | `[ ]` |
-| 2.4 | Login endpoint | `[ ]` |
-| 2.5 | JWT token generation | `[ ]` |
-| 2.6 | Role-based authorization | `[ ]` |
+| 2.1 | User model + migration | `[x]` |
+| 2.2 | Role model + migration | `[x]` |
+| 2.3 | Registration / admin user seed | `[x]` |
+| 2.4 | Login endpoint | `[x]` |
+| 2.5 | JWT token generation | `[x]` |
+| 2.6 | Role-based authorization | `[x]` |
 
 ---
 

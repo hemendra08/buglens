@@ -4,13 +4,19 @@
   "description": "> **Automated Bug Investigation & Root-Cause Analysis Platform**",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:web": "npm run dev --prefix apps/web",
+    "dev:api": "dotnet run --project backend/BugLens.Api",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "build:web": "npm run build --prefix apps/web",
+    "build:api": "dotnet build backend/BugLens.Api",
+    "build": "npm run build:api && npm run build:web"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@changesets/cli": "^3.0.3"
+    "@changesets/cli": "^3.0.3",
+    "concurrently": "^10.0.5"
   }
 }
