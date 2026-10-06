@@ -12,6 +12,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-router": "^1.170.41",
+    "@xyflow/react": "^12.12.0",
     "antd": "^6.6.5",
     "axios": "^1.20.0",
     "lucide-react": "^1.52.0",

@@ -20,6 +20,9 @@ namespace BugLens.Api.DTOs.Bugs
 
         public Guid ProjectId { get; set; }
         public string? CorrelationId { get; set; }
+        public string? BranchName { get; set; }
+        public string? PullRequestUrl { get; set; }
+        public string? Environment { get; set; }
         
         public List<BugLens.Api.DTOs.Comments.CommentResponse> Comments { get; set; } = new();
         public List<BugLens.Api.DTOs.Investigation.EvidenceResponse> Evidences { get; set; } = new();

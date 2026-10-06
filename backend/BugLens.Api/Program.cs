@@ -10,6 +10,15 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Observability & Structured Logging
+builder.Logging.ClearProviders();
+builder.Logging.AddJsonConsole(options =>
+{
+    options.IncludeScopes = true;
+    options.TimestampFormat = "yyyy-MM-dd HH:mm:ss.fff ";
+    options.JsonWriterOptions = new System.Text.Json.JsonWriterOptions { Indented = true };
+});
+
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

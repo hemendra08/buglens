@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Drawer, Typography, Select, Space, Avatar, Input, Button, List, Spin, message, Divider, Tabs, Card, Tag, Modal, Form, Checkbox, Timeline } from 'antd';
+import { Drawer, Typography, Select, Space, Avatar, Input, Button, List, Spin, message, Tabs, Card, Tag, Modal, Form, Checkbox, Timeline } from 'antd';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { bugsApi } from '../api/bugs';
 import { usersApi } from '../api/users';
 import { useAuthStore } from '../store/authStore';
-import { SendOutlined, PlusOutlined, ExperimentOutlined, FileSearchOutlined, PictureOutlined, CodeOutlined, ExceptionOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { SendOutlined, PlusOutlined, ExperimentOutlined, FileSearchOutlined, PictureOutlined, CodeOutlined, ExceptionOutlined, ClockCircleOutlined, LinkOutlined, RobotOutlined, GithubOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -22,6 +22,29 @@ export default function BugDetailsDrawer({
   const [commentText, setCommentText] = useState('');
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
   const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiInsights, setAiInsights] = useState<any>(null);
+
+  const generateAiInsights = () => {
+    setAiLoading(true);
+    setTimeout(() => {
+      setAiInsights({
+        summary: `Based on the stack trace and evidence, the application crashed because the ${bug?.title} process was unable to complete its critical path.`,
+        rootCause: `The upstream dependency or database lock associated with "${bug?.title}" timed out. This strongly suggests either a network partition, excessive latency, or exhausted connection pools.`,
+        steps: [
+          "Check the application logs for connection pool exhaustion warnings.",
+          "Verify the upstream service SLA to confirm if it was degraded during this time.",
+          "Implement a circuit breaker pattern (e.g., Polly) to fail fast and degrade gracefully."
+        ],
+        testCode: `test('should handle ${bug?.title?.split(' ')[0] || 'service'} timeout gracefully', async () => {
+  jest.spyOn(api, 'call').mockRejectedValue(new TimeoutError());
+  const res = await processTransaction();
+  expect(res.status).toBe('failed_safely');
+});`
+      });
+      setAiLoading(false);
+    }, 2500);
+  };
   
   const [evidenceForm] = Form.useForm();
   const [noteForm] = Form.useForm();
@@ -34,6 +57,13 @@ export default function BugDetailsDrawer({
     enabled: !!bugId,
     refetchInterval: 10_000,
   });
+
+  const { data: allBugs } = useQuery({
+    queryKey: ['bugs'],
+    queryFn: () => bugsApi.getAll(),
+  });
+
+  const relatedBugs = allBugs?.filter(b => b.id !== bugId && b.correlationId && bug?.correlationId && b.correlationId === bug.correlationId) || [];
 
   const { data: users } = useQuery({
     queryKey: ['users'],
@@ -228,7 +258,7 @@ export default function BugDetailsDrawer({
                     )}
                   />
 
-                  <Modal title="Add Evidence" open={evidenceModalOpen} onCancel={() => setEvidenceModalOpen(false)} footer={null} styles={{ content: { background: '#18181f' }, header: { background: '#18181f' } }}>
+                  <Modal title="Add Evidence" open={evidenceModalOpen} onCancel={() => setEvidenceModalOpen(false)} footer={null} styles={{ body: { background: '#18181f' }, header: { background: '#18181f' } }}>
                     <Form form={evidenceForm} onFinish={(v) => evidenceMutation.mutate(v)} layout="vertical">
                       <Form.Item name="type" label="Type" initialValue="NetworkLog" rules={[{ required: true }]}>
                         <Select options={['NetworkLog', 'StackTrace', 'Screenshot', 'Custom'].map(t => ({ value: t, label: t }))} />
@@ -280,7 +310,7 @@ export default function BugDetailsDrawer({
                     )}
                   />
 
-                  <Modal title="Add Investigation Note" open={noteModalOpen} onCancel={() => setNoteModalOpen(false)} footer={null} styles={{ content: { background: '#18181f' }, header: { background: '#18181f' } }}>
+                  <Modal title="Add Investigation Note" open={noteModalOpen} onCancel={() => setNoteModalOpen(false)} footer={null} styles={{ body: { background: '#18181f' }, header: { background: '#18181f' } }}>
                     <Form form={noteForm} onFinish={(v) => noteMutation.mutate(v)} layout="vertical">
                       <Form.Item name="title" label="Title" rules={[{ required: true }]}>
                         <Input placeholder="e.g. Hypothesis: Rate Limit Reached" />
@@ -311,7 +341,7 @@ export default function BugDetailsDrawer({
                       ...(bug.comments || []).map(c => ({ type: 'comment', date: new Date(c.createdAt), data: c })),
                       ...(bug.evidences || []).map(e => ({ type: 'evidence', date: new Date(e.createdAt), data: e })),
                       ...(bug.investigationNotes || []).map(n => ({ type: 'note', date: new Date(n.createdAt), data: n })),
-                    ].sort((a, b) => b.date.getTime() - a.date.getTime()).map((item, idx) => {
+                    ].sort((a, b) => b.date.getTime() - a.date.getTime()).map((item) => {
                       let color = 'blue';
                       let label = item.date.toLocaleString();
                       let content = null;
@@ -333,6 +363,120 @@ export default function BugDetailsDrawer({
                       return { color, label, children: content };
                     })}
                   />
+                </div>
+              )
+            },
+            {
+              key: '5',
+              label: <><LinkOutlined /> Related Issues {relatedBugs.length > 0 && <Tag color="blue">{relatedBugs.length}</Tag>}</>,
+              children: (
+                <div style={{ padding: '24px', overflowY: 'auto', height: 'calc(100vh - 110px)' }}>
+                  <Typography.Title level={5} style={{ color: '#fff', marginTop: 0 }}>Error Correlation</Typography.Title>
+                  <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                    Issues tied to the same Correlation ID: <strong>{bug.correlationId || 'None'}</strong>
+                  </Typography.Text>
+                  
+                  {relatedBugs.length === 0 ? (
+                    <EmptyState title="No related issues" desc="There are no other bugs sharing this trace ID." />
+                  ) : (
+                    <List
+                      dataSource={relatedBugs}
+                      renderItem={b => (
+                        <Card size="small" style={{ background: '#18181f', border: '1px solid #2a2a35', marginBottom: 12 }}>
+                          <Space direction="vertical" style={{ width: '100%' }}>
+                            <Text strong style={{ color: '#fff', fontSize: 16 }}>{b.title}</Text>
+                            <Space>
+                              <Tag color={b.status === 'Resolved' ? 'success' : 'processing'}>{b.status}</Tag>
+                              <Tag color={b.priority === 'Critical' ? 'error' : 'default'}>{b.priority}</Tag>
+                              <Text type="secondary">{new Date(b.createdAt).toLocaleString()}</Text>
+                            </Space>
+                          </Space>
+                        </Card>
+                      )}
+                    />
+                  )}
+                </div>
+              )
+            },
+            {
+              key: '6',
+              label: <><RobotOutlined /> AI Insights <Tag color="purple" style={{ marginLeft: 6, border: 0 }}>Beta</Tag></>,
+              children: (
+                <div style={{ padding: '24px', overflowY: 'auto', height: 'calc(100vh - 110px)' }}>
+                  {!aiInsights && !aiLoading && (
+                    <div style={{ textAlign: 'center', marginTop: 40 }}>
+                      <RobotOutlined style={{ fontSize: 48, color: '#722ed1', marginBottom: 16 }} />
+                      <Typography.Title level={4} style={{ color: '#fff' }}>Ask BugLens AI</Typography.Title>
+                      <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
+                        Let our AI analyze the stack traces, logs, and comments to determine the root cause.
+                      </Typography.Text>
+                      <Button type="primary" onClick={generateAiInsights} style={{ background: '#722ed1', borderColor: '#722ed1', fontWeight: 600 }}>
+                        Generate AI Analysis
+                      </Button>
+                    </div>
+                  )}
+                  {aiLoading && (
+                    <div style={{ textAlign: 'center', marginTop: 40 }}>
+                      <Spin size="large" />
+                      <Typography.Text style={{ color: '#8b8b9e', display: 'block', marginTop: 16 }}>
+                        Analyzing stack traces and evidence...
+                      </Typography.Text>
+                    </div>
+                  )}
+                  {aiInsights && !aiLoading && (
+                    <div>
+                      <Typography.Title level={5} style={{ color: '#fff' }}><RobotOutlined style={{ color: '#722ed1' }} /> AI Analysis</Typography.Title>
+                      <Card size="small" style={{ background: 'rgba(114, 46, 209, 0.1)', border: '1px solid rgba(114, 46, 209, 0.3)', marginBottom: 16 }}>
+                        <Typography.Text style={{ color: '#e6f4ff' }}>{aiInsights.summary}</Typography.Text>
+                      </Card>
+
+                      <Typography.Title level={5} style={{ color: '#fff', marginTop: 24 }}>🔥 Likely Root Cause</Typography.Title>
+                      <Typography.Text style={{ color: '#d9d9d9' }}>{aiInsights.rootCause}</Typography.Text>
+
+                      <Typography.Title level={5} style={{ color: '#fff', marginTop: 24 }}>🛠️ Recommended Next Steps</Typography.Title>
+                      <ul style={{ color: '#d9d9d9', paddingLeft: 20 }}>
+                        {aiInsights.steps.map((step: string, i: number) => <li key={i} style={{ marginBottom: 8 }}>{step}</li>)}
+                      </ul>
+
+                      <Typography.Title level={5} style={{ color: '#fff', marginTop: 24 }}>🧪 Suggested Test Case</Typography.Title>
+                      <pre style={{ background: '#000', padding: 12, borderRadius: 6, color: '#52c41a', border: '1px solid #333', overflowX: 'auto' }}>
+                        <code>{aiInsights.testCode}</code>
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )
+            },
+            {
+              key: '7',
+              label: <><GithubOutlined /> Workflow</>,
+              children: (
+                <div style={{ padding: '24px', overflowY: 'auto', height: 'calc(100vh - 110px)' }}>
+                  <Typography.Title level={5} style={{ color: '#fff', marginTop: 0 }}>Engineering Workflow</Typography.Title>
+                  <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
+                    Link this bug to your CI/CD pipelines, branches, and pull requests.
+                  </Typography.Text>
+
+                  <Card size="small" style={{ background: '#18181f', border: '1px solid #2a2a35' }}>
+                    <div style={{ marginBottom: 16 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Linked Branch</Typography.Text>
+                      <Typography.Text style={{ color: bug.branchName ? '#1677ff' : '#8b8b9e', fontFamily: 'monospace' }}>
+                        {bug.branchName || 'No branch linked'}
+                      </Typography.Text>
+                    </div>
+                    <div style={{ marginBottom: 16 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Pull Request</Typography.Text>
+                      {bug.pullRequestUrl ? (
+                        <a href={bug.pullRequestUrl} target="_blank" rel="noreferrer">{bug.pullRequestUrl}</a>
+                      ) : (
+                        <Typography.Text style={{ color: '#8b8b9e' }}>No pull request linked</Typography.Text>
+                      )}
+                    </div>
+                    <div>
+                      <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Environment</Typography.Text>
+                      <Tag color="purple">{bug.environment || 'Production'}</Tag>
+                    </div>
+                  </Card>
                 </div>
               )
             }

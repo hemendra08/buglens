@@ -25,6 +25,9 @@ namespace BugLens.Api.Services
                 AssignedToId = request.AssignedToId,
                 ProjectId = request.ProjectId,
                 CorrelationId = request.CorrelationId,
+                BranchName = request.BranchName,
+                PullRequestUrl = request.PullRequestUrl,
+                Environment = request.Environment,
                 CreatedById = createdById,
                 Status = BugStatus.Open,
                 CreatedAt = DateTime.UtcNow
@@ -55,7 +58,10 @@ namespace BugLens.Api.Services
                     AssignedToId = b.AssignedToId,
                     AssignedToName = b.AssignedTo != null ? b.AssignedTo.Name : null,
                     ProjectId = b.ProjectId,
-                    CorrelationId = b.CorrelationId
+                    CorrelationId = b.CorrelationId,
+                    BranchName = b.BranchName,
+                    PullRequestUrl = b.PullRequestUrl,
+                    Environment = b.Environment
                 })
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
@@ -91,6 +97,9 @@ namespace BugLens.Api.Services
                 AssignedToName = b.AssignedTo?.Name,
                 ProjectId = b.ProjectId,
                 CorrelationId = b.CorrelationId,
+                BranchName = b.BranchName,
+                PullRequestUrl = b.PullRequestUrl,
+                Environment = b.Environment,
                 Comments = b.Comments.OrderBy(c => c.CreatedAt).Select(c => new CommentResponse
                 {
                     Id = c.Id,
@@ -136,6 +145,10 @@ namespace BugLens.Api.Services
             {
                  bug.AssignedToId = request.AssignedToId.Value == Guid.Empty ? null : request.AssignedToId.Value;
             }
+
+            if (request.BranchName != null) bug.BranchName = request.BranchName;
+            if (request.PullRequestUrl != null) bug.PullRequestUrl = request.PullRequestUrl;
+            if (request.Environment != null) bug.Environment = request.Environment;
 
             bug.UpdatedAt = DateTime.UtcNow;
 

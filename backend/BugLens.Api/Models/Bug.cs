@@ -25,6 +25,16 @@ namespace BugLens.Api.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 
+        // Engineering Workflow
+        [MaxLength(200)]
+        public string? BranchName { get; set; }
+        
+        [MaxLength(500)]
+        public string? PullRequestUrl { get; set; }
+        
+        [MaxLength(100)]
+        public string? Environment { get; set; }
+
         // Foreign Keys
         [Required]
         public Guid CreatedById { get; set; }

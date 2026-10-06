@@ -20,5 +20,14 @@ namespace BugLens.Api.DTOs.Bugs
 
         [MaxLength(100)]
         public string? CorrelationId { get; set; }
+
+        [MaxLength(200)]
+        public string? BranchName { get; set; }
+        
+        [MaxLength(500)]
+        public string? PullRequestUrl { get; set; }
+        
+        [MaxLength(100)]
+        public string? Environment { get; set; }
     }
 }

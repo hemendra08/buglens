@@ -8,7 +8,7 @@ import {
   DashboardOutlined, SettingOutlined, LogoutOutlined,
   FilterOutlined, ReloadOutlined, ExclamationCircleOutlined,
   CheckCircleOutlined, SyncOutlined, ClockCircleOutlined,
-  FireOutlined,
+  FireOutlined, ApiOutlined, RobotOutlined
 } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
@@ -16,7 +16,7 @@ import { bugsApi } from '../api/bugs';
 import { projectsApi } from '../api/projects';
 import type { CreateBugRequest, BugResponse } from '../api/bugs';
 import BugDetailsDrawer from '../components/BugDetailsDrawer';
-
+import ArchitectureMap from '../components/ArchitectureMap';
 const { Text } = Typography;
 const { TextArea } = Input;
 
@@ -61,7 +61,6 @@ function StatsGrid({ bugs }: { bugs: BugResponse[] }) {
   const total     = bugs.length;
   const open      = bugs.filter(b => b.status === 'Open').length;
   const progress  = bugs.filter(b => b.status === 'InProgress').length;
-  const resolved  = bugs.filter(b => b.status === 'Resolved' || b.status === 'Closed').length;
   const critical  = bugs.filter(b => b.priority === 'Critical').length;
 
   const cards = [
@@ -113,6 +112,7 @@ function ReportBugModal({ open, onClose, projectId }: { open: boolean; onClose: 
       description: values.description,
       priority: values.priority,
       projectId: projectId,
+      correlationId: values.correlationId || null,
       assignedToId: null,
     });
   };
@@ -129,7 +129,7 @@ function ReportBugModal({ open, onClose, projectId }: { open: boolean; onClose: 
         </Space>
       }
       width={560}
-      styles={{ content: { background: '#18181f', border: '1px solid #2a2a35' }, header: { background: '#18181f', borderBottom: '1px solid #2a2a35' } }}
+      styles={{ body: { background: '#18181f' }, header: { background: '#18181f', borderBottom: '1px solid #2a2a35' } }}
     >
       <Form form={form} onFinish={onFinish} layout="vertical" size="large" style={{ marginTop: 20 }}>
         <Form.Item label={<span style={{ color: '#8b8b9e', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bug Title</span>} name="title" rules={[{ required: true, message: 'A descriptive title is required.' }]}>
@@ -151,6 +151,10 @@ function ReportBugModal({ open, onClose, projectId }: { open: boolean; onClose: 
             { value: 'High',     label: '🔴  High — Key feature broken' },
             { value: 'Critical', label: '🔥  Critical — System unusable' },
           ]} />
+        </Form.Item>
+
+        <Form.Item label={<span style={{ color: '#8b8b9e', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Correlation / Trace ID (Optional)</span>} name="correlationId" tooltip="Attach an error trace ID from your logs to correlate this with other bugs.">
+          <Input placeholder="e.g. req-5f8a9b21-xyz" />
         </Form.Item>
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
@@ -181,7 +185,7 @@ function CreateProjectModal({ open, onClose }: { open: boolean; onClose: () => v
   });
 
   return (
-    <Modal open={open} onCancel={onClose} footer={null} title="Create Project" styles={{ content: { background: '#18181f' }, header: { background: '#18181f' } }}>
+    <Modal open={open} onCancel={onClose} footer={null} title="Create Project" styles={{ body: { background: '#18181f' }, header: { background: '#18181f' } }}>
       <Form form={form} onFinish={mutate} layout="vertical">
         <Form.Item label="Project Name" name="name" rules={[{ required: true }]}>
           <Input />
@@ -208,6 +212,52 @@ export default function Dashboard() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const qc = useQueryClient();
+
+  const handleSimulateCrash = async () => {
+    if (!activeProjectId) {
+      message.error("Please select a project first.");
+      return;
+    }
+    setIsSimulating(true);
+    const traceId = `trace-${Math.random().toString(36).substring(2, 10)}`;
+    try {
+      message.loading({ content: 'Simulating app crash...', key: 'sim' });
+      // 1. Create Bug
+      const bug = await bugsApi.create({
+        title: 'Payment Gateway Timeout (Automated)',
+        description: 'The payment gateway timed out after 30 seconds while processing a transaction.',
+        priority: 'Critical',
+        projectId: activeProjectId,
+        correlationId: traceId,
+        branchName: 'fix/payment-gateway-timeout',
+        pullRequestUrl: 'https://github.com/buglens/buglens-demo/pull/42',
+        environment: 'Production',
+      });
+
+      // 2. Add Evidence
+      await bugsApi.addEvidence(bug.id, {
+        type: 'StackTrace',
+        title: 'GatewayTimeoutException',
+        content: `at Stripe.PaymentIntentService.Create(PaymentIntentCreateOptions options)\nat BugLens.Billing.PaymentProcessor.Charge(String customerId, Int32 amount)\nat BugLens.Api.Controllers.CheckoutController.Post(CheckoutRequest req)`
+      });
+
+      // 3. Add Investigation Note
+      await bugsApi.addInvestigationNote(bug.id, {
+        title: 'AI Analysis',
+        content: 'The timeout is correlated with a spike in latency from the upstream Stripe API. The retry policy was exhausted. Marking as Root Cause.',
+        isRootCause: true
+      });
+
+      qc.invalidateQueries({ queryKey: ['bugs'] });
+      message.success({ content: 'Crash simulated successfully!', key: 'sim', duration: 3 });
+    } catch (e) {
+      message.error({ content: 'Simulation failed.', key: 'sim' });
+    } finally {
+      setIsSimulating(false);
+    }
+  };
 
   const { data: projects = [] } = useQuery({
     queryKey: ['projects'],
@@ -360,9 +410,20 @@ export default function Dashboard() {
             <Button size="small" type="dashed" icon={<PlusOutlined />} onClick={() => setProjectModalOpen(true)}>New</Button>
           </Space>
           <div className="topbar-right">
+            <Button 
+              type="default" 
+              icon={<ApiOutlined />} 
+              href="http://localhost:5059/scalar/v1" 
+              target="_blank"
+            >
+              API Explorer
+            </Button>
             <Tooltip title="Refresh">
               <Button icon={<ReloadOutlined />} onClick={() => refetch()} />
             </Tooltip>
+            <Button type="primary" danger loading={isSimulating} icon={<RobotOutlined />} onClick={handleSimulateCrash} style={{ fontWeight: 600 }}>
+              Simulate Crash
+            </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)} style={{ fontWeight: 600 }}>
               Report Bug
             </Button>
@@ -419,6 +480,9 @@ export default function Dashboard() {
               locale={{ emptyText: <Empty description="No bugs found. Great job! 🎉" /> }}
               pagination={{ pageSize: 10, showSizeChanger: false, showTotal: (t) => `${t} issue${t === 1 ? '' : 's'}` }}
             />
+          </div>
+          <div style={{ marginTop: 24, paddingBottom: 24 }}>
+            <ArchitectureMap />
           </div>
         </main>
       </div>

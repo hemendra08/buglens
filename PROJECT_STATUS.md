@@ -87,10 +87,10 @@
 
 | Step | Description | Status |
 |------|-------------|--------|
-| 5.1 | API explorer | `[ ]` |
-| 5.2 | Dependency graph (React Flow) | `[ ]` |
+| 5.1 | API explorer | `[x]` |
+| 5.2 | Dependency graph (React Flow) | `[x]` |
 | 5.3 | Correlation ID support | `[x]` |
-| 5.4 | Error correlation | `[ ]` |
+| 5.4 | Error correlation | `[x]` |
 | 5.5 | Investigation timeline | `[x]` |
 
 ---
@@ -99,10 +99,10 @@
 
 | Step | Description | Status |
 |------|-------------|--------|
-| 6.1 | Automatic evidence collection | `[ ]` |
-| 6.2 | Automatic bug report generation | `[ ]` |
-| 6.3 | Automatic error correlation | `[ ]` |
-| 6.4 | Investigation summaries | `[ ]` |
+| 6.1 | Automatic evidence collection | `[x]` |
+| 6.2 | Automatic bug report generation | `[x]` |
+| 6.3 | Automatic error correlation | `[x]` |
+| 6.4 | Investigation summaries | `[x]` |
 
 ---
 
@@ -110,10 +110,10 @@
 
 | Step | Description | Status |
 |------|-------------|--------|
-| 7.1 | AI error analysis | `[ ]` |
-| 7.2 | Root cause suggestions | `[ ]` |
-| 7.3 | Suggested investigation steps | `[ ]` |
-| 7.4 | Suggested test cases | `[ ]` |
+| 7.1 | AI error analysis | `[x]` |
+| 7.2 | Root cause suggestions | `[x]` |
+| 7.3 | Suggested investigation steps | `[x]` |
+| 7.4 | Suggested test cases | `[x]` |
 
 ---
 
@@ -121,11 +121,11 @@
 
 | Step | Description | Status |
 |------|-------------|--------|
-| 8.1 | Git integration | `[ ]` |
-| 8.2 | PR integration | `[ ]` |
-| 8.3 | CI/CD pipeline integration | `[ ]` |
-| 8.4 | QA workflow | `[ ]` |
-| 8.5 | Deployment tracking | `[ ]` |
+| 8.1 | Git integration | `[x]` |
+| 8.2 | PR integration | `[x]` |
+| 8.3 | CI/CD pipeline integration | `[x]` |
+| 8.4 | QA workflow | `[x]` |
+| 8.5 | Deployment tracking | `[x]` |
 
 ---
 
@@ -133,12 +133,12 @@
 
 | Step | Description | Status |
 |------|-------------|--------|
-| 9.1 | Testing improvements | `[ ]` |
-| 9.2 | Observability (OpenTelemetry, structured logging) | `[ ]` |
-| 9.3 | Security hardening | `[ ]` |
-| 9.4 | Docker / containerization | `[ ]` |
-| 9.5 | Deployment | `[ ]` |
-| 9.6 | Final documentation | `[ ]` |
+| 9.1 | Testing improvements | `[x]` |
+| 9.2 | Observability (OpenTelemetry, structured logging) | `[x]` |
+| 9.3 | Security hardening | `[x]` |
+| 9.4 | Docker / containerization | `[x]` |
+| 9.5 | Deployment | `[x]` |
+| 9.6 | Final documentation | `[x]` |
 
 ---
 

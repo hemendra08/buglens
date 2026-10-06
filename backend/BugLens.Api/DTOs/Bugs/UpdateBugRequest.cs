@@ -15,5 +15,14 @@ namespace BugLens.Api.DTOs.Bugs
         public BugPriority? Priority { get; set; }
         
         public Guid? AssignedToId { get; set; }
+        
+        [MaxLength(200)]
+        public string? BranchName { get; set; }
+        
+        [MaxLength(500)]
+        public string? PullRequestUrl { get; set; }
+        
+        [MaxLength(100)]
+        public string? Environment { get; set; }
     }
 }
